@@ -83,12 +83,14 @@ def two_opt(tour, dist, start_time, time_limit, cycles):
 def solve_tsp(n, dist):
     start_time = time.time()
     time_limit = 60.0
+    max_no_improve = 1000
 
     best_tour = None
     best_cost = float('inf')
     cycles = 0
+    lstImprove = 0 #time since last improvement
 
-    while time.time() - start_time < time_limit:
+    while time.time() - start_time < time_limit and (lstImprove < max_no_improve):
         tour = nn(n, dist)
         cost = tour_cost(tour, dist)
         cycles += 1
@@ -101,30 +103,42 @@ def solve_tsp(n, dist):
         if cost < best_cost:
             best_cost = cost
             best_tour = tour[:]
+            lstImprove = 0      # improvement reset
+        else:
+            lstImprove += 1
 
     return best_tour, round(best_cost, 2), "{:.1e}".format(cycles)
 
 
-def write_solution(tour):
+def write_solution(tour,filename):
     # convert back to 1 based
     t = [node + 1 for node in tour]
     t.append(t[0])  # close the cycle
     
-    filename = f"solution.txt"
     with open(filename, "w") as f:
         f.write(",".join(str(x) for x in t))
     
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="1 minute TSP solver")
-    parser.add_argument("graphfile", type=str, help="path to graph file")
-    args = parser.parse_args()
-    n, dist = import_graph(args.graphfile)
+  
+    n, dist = import_graph("TSP_1000_euclidianDistance.txt")
 
     # solve
     tour, cost, cycles = solve_tsp(n, dist)
 
-    print("best cost:", cost)
+    print("Euclidian best cost:", cost)
     print("Cycles:", cycles)
+    print("best tour:", tour)
 
-    write_solution(tour)
+    write_solution(tour, "solution_920047428_euclidean.txt")
+
+    n, dist = import_graph("TSP_1000_randomDistance.txt")
+
+    # solve
+    tour, cost, cycles = solve_tsp(n, dist)
+
+    print("Random best cost:", cost)
+    print("Cycles:", cycles)
+    print("best tour:", tour)
+
+    write_solution(tour,"solution_920047428_random.txt")
